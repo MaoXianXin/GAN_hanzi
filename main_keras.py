@@ -126,7 +126,7 @@ def train(BATCH_SIZE):
         os.mkdir("keras_samples/")
 
     for epoch in tqdm(range(500000)):
-        print("Epoch is", epoch)
+        # print("Epoch is", epoch)
         nob = int(X_train.shape[0]/BATCH_SIZE)
         for index in range(nob):
             noise = np.random.uniform(-1, 1, (BATCH_SIZE,100))
@@ -152,8 +152,8 @@ def train(BATCH_SIZE):
                 Image.fromarray(image.astype(np.uint8)).save(
                     "keras_samples/"+str(epoch)+"_"+str(index)+".png")
 
-        print("Epoch %d Step %d d_loss : %f" % (epoch, index, d_loss))
-        print("Epoch %d Step %d g_loss : %f" % (epoch, index, g_loss))
+        # print("Epoch %d Step %d d_loss : %f" % (epoch, index, d_loss))
+        # print("Epoch %d Step %d g_loss : %f" % (epoch, index, g_loss))
         d_losses.append(d_loss)
         g_losses.append(g_loss)
     return d_losses,g_losses
