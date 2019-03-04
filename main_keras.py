@@ -18,7 +18,7 @@ import keras.backend as K
 from keras import constraints,initializers
 from Chinese_inputs import CommonChar, ImageChar
 import os
-import tqdm
+from tqdm import tqdm
 
 def generator_model(im_size, output_channel = 3):
     initializer = initializers.truncated_normal(stddev=0.1)
