@@ -18,6 +18,7 @@ import keras.backend as K
 from keras import constraints,initializers
 from Chinese_inputs import CommonChar, ImageChar
 import os
+import tqdm
 
 def generator_model(im_size, output_channel = 3):
     initializer = initializers.truncated_normal(stddev=0.1)
@@ -124,7 +125,7 @@ def train(BATCH_SIZE):
     if not os.path.exists("keras_samples/"):
         os.mkdir("keras_samples/")
 
-    for epoch in range(500000):
+    for epoch in tqdm(range(500000)):
         print("Epoch is", epoch)
         nob = int(X_train.shape[0]/BATCH_SIZE)
         for index in range(nob):
