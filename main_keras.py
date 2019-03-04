@@ -124,7 +124,7 @@ def train(BATCH_SIZE):
     if not os.path.exists("keras_samples/"):
         os.mkdir("keras_samples/")
 
-    for epoch in range(150):
+    for epoch in range(500000):
         print("Epoch is", epoch)
         nob = int(X_train.shape[0]/BATCH_SIZE)
         for index in range(nob):
