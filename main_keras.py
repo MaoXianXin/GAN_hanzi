@@ -144,7 +144,7 @@ def train(BATCH_SIZE):
             g_loss = discriminator_on_generator.train_on_batch(noise, [1] * BATCH_SIZE)
             discriminator.trainable = True
 
-            if epoch % 20 == 0:
+            if epoch % 20 == 0 and index == 0:
                 image = combine_images(generated_images)
                 image = image*127.5+127.5
                 if image.shape[-1] ==1:
@@ -159,7 +159,7 @@ def train(BATCH_SIZE):
     return d_losses,g_losses
 
 if __name__ == "__main__":
-    d_losses,g_losses = train(BATCH_SIZE=128)
+    d_losses,g_losses = train(BATCH_SIZE=64)
     print(len(d_losses))
     fig = plt.figure()
     ax = fig.add_subplot(111)
