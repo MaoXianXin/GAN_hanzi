@@ -144,13 +144,13 @@ def train(BATCH_SIZE):
             g_loss = discriminator_on_generator.train_on_batch(noise, [1] * BATCH_SIZE)
             discriminator.trainable = True
 
-            if index == 0:
+            if epoch % 100:
                 image = combine_images(generated_images)
                 image = image*127.5+127.5
                 if image.shape[-1] ==1:
                     image = image[:,:,0]
                 Image.fromarray(image.astype(np.uint8)).save(
-                    "keras_samples/"+str(epoch)+"_"+str(index)+".png")
+                    "keras_samples/" + str(epoch) + ".png")
 
         # print("Epoch %d Step %d d_loss : %f" % (epoch, index, d_loss))
         # print("Epoch %d Step %d g_loss : %f" % (epoch, index, g_loss))
