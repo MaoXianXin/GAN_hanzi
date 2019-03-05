@@ -1,19 +1,25 @@
 from PIL import Image,ImageDraw,ImageFont
 import random
 import numpy as np
+import os
 # logger = logging.Logger(name='gen verification')
 
 FONTSIZE = 64
 
 class CommonChar():
-    def __init__(self,fn='common_characters.txt'):
-        with open(fn,'r',encoding='utf8') as f:
-            print(f)
-            self.c_list = f.readlines()
-            self.chars = []
-            for i in range(len(self.c_list)):
-                self.cc = [c for c in self.c_list[i].strip()]
-                self.chars += self.cc
+    def __init__(self,path):  # fn is file path dir
+        self.chars = []
+        files = os.listdir(path)
+        # print(files)
+        for file in files:
+            file = './data/' + file
+            # print(file)
+            with open(file,'r',encoding='utf8') as f:
+                self.c_list = f.readlines()
+                for i in range(len(self.c_list)):
+                    self.cc = [c for c in self.c_list[i].strip()]
+                    self.chars += self.cc
+                f.close()
 # class CommonChar():
 #     def __init__(self, fn='common_characters.txt'):
 #         with open(fn, 'r', encoding='utf8') as f:
