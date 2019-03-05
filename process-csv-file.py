@@ -21,7 +21,7 @@ dataframe = pd.read_csv(path)
 type(dataframe['review'])
 
 new_path = './data/ChnSentiCorp_htl_all.txt'
-new_file = open(new_path, 'w')
+new_file = open(new_path, 'w', encoding='utf8')
 
 for line in dataframe['review']:
     new_file.write(str(line))
