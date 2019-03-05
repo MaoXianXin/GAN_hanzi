@@ -159,7 +159,7 @@ def train(BATCH_SIZE):
     return d_losses,g_losses
 
 if __name__ == "__main__":
-    d_losses,g_losses = train(BATCH_SIZE=64)
+    d_losses,g_losses = train(BATCH_SIZE=256)
     print(len(d_losses))
     fig = plt.figure()
     ax = fig.add_subplot(111)
