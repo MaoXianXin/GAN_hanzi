@@ -40,7 +40,7 @@ def save_image(cc_chars):
 if __name__ == "__main__":
     cc = CommonChar(path='./data')
     ic = ImageChar()
-    if not os.exists('./processed-image'):
+    if not os.path.exists('./processed-image'):
         os.mkdir('./processed-image')
     with concurrent.futures.ProcessPoolExecutor() as executor:
         executor.map(save_image, cc.chars)
