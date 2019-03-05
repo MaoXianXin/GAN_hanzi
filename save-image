@@ -34,13 +34,14 @@ def save_image(cc_chars):
         ic.drawText(c)
         image = (ic.toArray() - 127.5) / 127.5
         # print(image)
-        if i % 2000 == 0:
-            Image.fromarray(image.astype(np.uint8)).save(
-                "./processed-image/" + str(i) + ".png")
+        Image.fromarray(image.astype(np.uint8)).save(
+            "./processed-image/" + str(i) + ".png")
 
 if __name__ == "__main__":
     cc = CommonChar(path='./data')
     ic = ImageChar()
+    if not os.exists('./processed-image'):
+        os.mkdir('./processed-image')
     with concurrent.futures.ProcessPoolExecutor() as executor:
         executor.map(save_image, cc.chars)
 
