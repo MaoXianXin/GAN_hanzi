@@ -8,7 +8,19 @@ FONTSIZE = 64
 class CommonChar():
     def __init__(self,fn='common_characters.txt'):
         with open(fn,'r',encoding='utf8') as f:
-            self.chars = [c for c in f.readline().strip()]
+            print(f)
+            self.c_list = f.readlines()
+            self.chars = []
+            for i in range(len(self.c_list)):
+                self.cc = [c for c in self.c_list[i].strip()]
+                self.chars += self.cc
+# class CommonChar():
+#     def __init__(self, fn='common_characters.txt'):
+#         with open(fn, 'r', encoding='utf8') as f:
+#             self.c_list = f.readlines()
+#             self.chars = []
+            # for line in self.c_list:
+            #     self.chars = self.chars.append([c for c in line.strip()])
 
 class RandomChar():
     @staticmethod

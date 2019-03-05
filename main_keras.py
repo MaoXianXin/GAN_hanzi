@@ -7,15 +7,15 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, Conv2DTranspose
 from keras.layers.core import Flatten
-from keras.optimizers import SGD, RMSprop,Adam
-from keras.datasets import cifar10,mnist
+from keras.optimizers import SGD, RMSprop, Adam
+from keras.datasets import cifar10, mnist
 import numpy as np
 from PIL import Image
 import argparse
 import math
 import matplotlib.pyplot as plt
 import keras.backend as K
-from keras import constraints,initializers
+from keras import constraints, initializers
 from Chinese_inputs import CommonChar, ImageChar
 import os
 from tqdm import tqdm
@@ -107,7 +107,7 @@ def train(BATCH_SIZE):
     for c in cc.chars:
         ic.drawText(c)
         X_all.append((ic.toArray()-127.5)/127.5)
-    X_train = np.array(X_all)
+    X_train = np.array(X_all)   # get the training data
 
     if len(X_train.shape)==3:
         X_train = X_train.reshape(X_train.shape + (1,))
