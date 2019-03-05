@@ -144,7 +144,7 @@ def train(BATCH_SIZE):
             g_loss = discriminator_on_generator.train_on_batch(noise, [1] * BATCH_SIZE)
             discriminator.trainable = True
 
-            if epoch % 100:
+            if epoch % 20:
                 image = combine_images(generated_images)
                 image = image*127.5+127.5
                 if image.shape[-1] ==1:
