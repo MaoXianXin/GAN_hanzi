@@ -101,7 +101,7 @@ def combine_images(generated_images):
 def train(BATCH_SIZE):
     d_losses =[]
     g_losses = []
-    cc =CommonChar()
+    cc =CommonChar(path='./data')
     ic =ImageChar()
     X_all = []
     for c in cc.chars:
@@ -159,7 +159,7 @@ def train(BATCH_SIZE):
     return d_losses,g_losses
 
 if __name__ == "__main__":
-    d_losses,g_losses = train(BATCH_SIZE=256)
+    d_losses,g_losses = train(BATCH_SIZE=4)
     print(len(d_losses))
     fig = plt.figure()
     ax = fig.add_subplot(111)

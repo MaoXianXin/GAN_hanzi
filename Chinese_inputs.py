@@ -12,7 +12,7 @@ class CommonChar():
         files = os.listdir(path)
         # print(files)
         for file in files:
-            file = './data/' + file
+            file = os.path.join(path, file)
             # print(file)
             with open(file,'r',encoding='utf8') as f:
                 self.c_list = f.readlines()
