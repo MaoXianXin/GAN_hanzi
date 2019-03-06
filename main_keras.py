@@ -19,6 +19,7 @@ from keras import constraints, initializers
 from Chinese_inputs import CommonChar, ImageChar
 import os
 from tqdm import tqdm
+from keras.models import model_from_json
 
 def generator_model(im_size, output_channel = 3):
     initializer = initializers.truncated_normal(stddev=0.1)
@@ -98,7 +99,7 @@ def combine_images(generated_images):
             img[:,:,:]
     return image
 
-def train(BATCH_SIZE):
+def train(BATCH_SIZE, restore=False):
     d_losses =[]
     g_losses = []
     cc =CommonChar(path='./data')
@@ -112,15 +113,46 @@ def train(BATCH_SIZE):
     if len(X_train.shape)==3:
         X_train = X_train.reshape(X_train.shape + (1,))
 
-    optim = Adam(lr=0.0002,beta_1=0.5)
+    optim = Adam(lr=0.0002, beta_1=0.5)
 
-    discriminator = discriminator_model(im_size=64,input_channel=1)
-    generator = generator_model(im_size=64,output_channel=1)
-    discriminator.compile(loss='binary_crossentropy', optimizer=optim)
-    generator.compile(loss='binary_crossentropy', optimizer=optim)
-    discriminator_on_generator = \
-        generator_containing_discriminator(generator, discriminator)
-    discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=optim)
+    if restore == True:
+        # load json and create model
+        json_file = open('./load-save-keras-model/checkpoint/discriminator_model-0.json', 'r')
+        loaded_model_json = json_file.read()
+        json_file.close()
+        discriminator = model_from_json(loaded_model_json)
+        # load weights into new model
+        discriminator.load_weights("./load-save-keras-model/checkpoint/discriminator_model-0.h5")
+        discriminator.compile(loss='binary_crossentropy', optimizer=optim)
+        print("Loaded discriminator_model from disk")
+
+        # load json and create model
+        json_file = open('./load-save-keras-model/checkpoint/generator_model-0.json', 'r')
+        loaded_model_json = json_file.read()
+        json_file.close()
+        generator = model_from_json(loaded_model_json)
+        # load weights into new model
+        generator.load_weights("./load-save-keras-model/checkpoint/generator_model-0.h5")
+        generator.compile(loss='binary_crossentropy', optimizer=optim)
+        print("Loaded generator model from disk")
+
+        # load json and create model
+        json_file_1 = open('./load-save-keras-model/checkpoint/discriminator_on_generator-0.json', 'r')
+        loaded_model_json_1 = json_file_1.read()
+        json_file_1.close()
+        discriminator_on_generator = model_from_json(loaded_model_json_1)
+        # load weights into new model
+        discriminator_on_generator.load_weights("./load-save-keras-model/checkpoint/discriminator_on_generator-0.h5")
+        discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=optim)
+        print("Loaded discriminator_on_generator model from disk")
+    else:
+        discriminator = discriminator_model(im_size=64, input_channel=1)  # need to save
+        generator = generator_model(im_size=64, output_channel=1)
+        discriminator.compile(loss='binary_crossentropy', optimizer=optim)
+        generator.compile(loss='binary_crossentropy', optimizer=optim)
+        discriminator_on_generator = \
+            generator_containing_discriminator(generator, discriminator)  # need to save
+        discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=optim)
 
     if not os.path.exists("keras_samples/"):
         os.mkdir("keras_samples/")
@@ -144,6 +176,7 @@ def train(BATCH_SIZE):
             g_loss = discriminator_on_generator.train_on_batch(noise, [1] * BATCH_SIZE)
             discriminator.trainable = True
 
+            # save image
             if epoch % 20 == 0 and index == 0:
                 image = combine_images(generated_images)
                 image = image*127.5+127.5
@@ -152,6 +185,31 @@ def train(BATCH_SIZE):
                 Image.fromarray(image.astype(np.uint8)).save(
                     "keras_samples/" + str(epoch) + ".png")
 
+            # save model
+            if epoch != 0 and epoch % 100000 == 0 and index == 0:
+                total_model = [discriminator, generator, discriminator_on_generator]
+                # serialize model to JSON
+                discriminator_model_json = discriminator.to_json()
+                with open("./load-save-keras-model/checkpoint/discriminator_model-%d.json" % epoch, "w") as json_file:
+                    json_file.write(discriminator_model_json)
+                # serialize weights to HDF5
+                discriminator.save_weights("./load-save-keras-model/checkpoint/discriminator_model-%d.h5" % epoch)
+                print("Saved discriminator model to disk")
+
+                generator_model_json = generator.to_json()
+                with open("./load-save-keras-model/checkpoint/generator_model-%d.json" % epoch, "w") as json_file:
+                    json_file.write(generator_model_json)
+                # serialize weights to HDF5
+                generator.save_weights("./load-save-keras-model/checkpoint/generator_model-%d.h5" % epoch)
+                print("Saved generator model to disk")
+
+                discriminator_on_generator_model_json = discriminator_on_generator.to_json()
+                with open("./load-save-keras-model/checkpoint/discriminator_on_generator-%d.json" % epoch, "w") as json_file:
+                    json_file.write(discriminator_on_generator_model_json)
+                # serialize weights to HDF5
+                discriminator_on_generator.save_weights("./load-save-keras-model/checkpoint/discriminator_on_generator-%d.h5" % epoch)
+                print("Saved discriminator_on_generator model to disk")
+
         # print("Epoch %d Step %d d_loss : %f" % (epoch, index, d_loss))
         # print("Epoch %d Step %d g_loss : %f" % (epoch, index, g_loss))
         d_losses.append(d_loss)
@@ -159,7 +217,7 @@ def train(BATCH_SIZE):
     return d_losses,g_losses
 
 if __name__ == "__main__":
-    d_losses,g_losses = train(BATCH_SIZE=64)
+    d_losses,g_losses = train(BATCH_SIZE=64, restore=False)
     print(len(d_losses))
     fig = plt.figure()
     ax = fig.add_subplot(111)
