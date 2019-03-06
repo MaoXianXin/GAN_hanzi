@@ -167,15 +167,15 @@ def train(BATCH_SIZE, restore=False):
         discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=optim)
 
     for epoch in tqdm(range(500000)):
-        for i in range(int(741 / BATCH_SIZE)):
+        for i in range(int(740 / BATCH_SIZE)):
             # print("Epoch is", epoch)
             noise = np.random.uniform(-1, 1, (BATCH_SIZE,100))
             image_batch = train_generator.next()
             print(image_batch.shape)
-            for i in range(image_batch.shape[0]):
-                image = np.reshape(image_batch[i], (64,64))
-                Image.fromarray(image.astype(np.uint8)).save(
-                    "./print_image/" + str(epoch) + '-' + str(i) + ".png")
+            # for i in range(image_batch.shape[0]):
+            #     image = np.reshape(image_batch[i], (64,64))
+            #     Image.fromarray(image.astype(np.uint8)).save(
+            #         "./print_image/" + str(epoch) + '-' + str(i) + ".png")
 
             generated_images = generator.predict(noise, verbose=0)
 
