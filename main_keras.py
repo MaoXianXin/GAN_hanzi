@@ -154,9 +154,6 @@ def train(BATCH_SIZE, restore=False):
             generator_containing_discriminator(generator, discriminator)  # need to save
         discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=optim)
 
-    if not os.path.exists("keras_samples/"):
-        os.mkdir("keras_samples/")
-
     for epoch in tqdm(range(500000)):
         # print("Epoch is", epoch)
         nob = int(X_train.shape[0]/BATCH_SIZE)
@@ -217,6 +214,12 @@ def train(BATCH_SIZE, restore=False):
     return d_losses,g_losses
 
 if __name__ == "__main__":
+    if not os.path.exists("keras_samples/"):
+        os.mkdir("keras_samples/")
+
+    if not os.path.exists('./load-save-keras-model/checkpoint'):
+        os.mkdir('./load-save-keras-model/checkpoint')
+
     d_losses,g_losses = train(BATCH_SIZE=64, restore=False)
     print(len(d_losses))
     fig = plt.figure()
