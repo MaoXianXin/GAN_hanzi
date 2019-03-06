@@ -20,6 +20,13 @@ from Chinese_inputs import CommonChar, ImageChar
 import os
 from tqdm import tqdm
 from keras.models import model_from_json
+from keras.preprocessing.image import ImageDataGenerator
+
+# dimensions of our images.
+img_width, img_height = 64, 64
+
+train_data_dir = '/home/mao/Downloads/dataset/temp_processed_image/train'
+validation_data_dir = '/home/mao/Downloads/dataset/temp_processed_image/validation'
 
 def generator_model(im_size, output_channel = 3):
     initializer = initializers.truncated_normal(stddev=0.1)
@@ -100,18 +107,23 @@ def combine_images(generated_images):
     return image
 
 def train(BATCH_SIZE, restore=False):
+    # this is the augmentation configuration we will use for training
+    train_datagen = ImageDataGenerator(
+        rescale=1. / 255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=False)
+
+    train_generator = train_datagen.flow_from_directory(
+        train_data_dir,
+        target_size=(img_width, img_height),
+        batch_size=BATCH_SIZE,
+        class_mode=None,
+        color_mode='grayscale',
+        classes=None)
+
     d_losses =[]
     g_losses = []
-    cc =CommonChar(path='./data')
-    ic =ImageChar()
-    X_all = []
-    for c in cc.chars:
-        ic.drawText(c)
-        X_all.append((ic.toArray()-127.5)/127.5)
-    X_train = np.array(X_all)   # get the training data
-
-    if len(X_train.shape)==3:
-        X_train = X_train.reshape(X_train.shape + (1,))
 
     optim = Adam(lr=0.0002, beta_1=0.5)
 
@@ -155,17 +167,19 @@ def train(BATCH_SIZE, restore=False):
         discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=optim)
 
     for epoch in tqdm(range(500000)):
-        # print("Epoch is", epoch)
-        nob = int(X_train.shape[0]/BATCH_SIZE)
-        for index in range(nob):
+        for i in range(int(902 / 8)):
+            # print("Epoch is", epoch)
             noise = np.random.uniform(-1, 1, (BATCH_SIZE,100))
-            image_batch = X_train[index*BATCH_SIZE:(index+1)*BATCH_SIZE]
+            image_batch = train_generator.next()
             generated_images = generator.predict(noise, verbose=0)
 
 
             combined_X = np.concatenate((image_batch,generated_images),axis=0)
-            combined_Y = np.array([1] * BATCH_SIZE + [0] * BATCH_SIZE)
+            # print(list(combined_X.shape)[0])
+            BATCH_SIZE_real = BATCH_SIZE_fake = int(list(combined_X.shape)[0] / 2)
+            combined_Y = np.array([1] * BATCH_SIZE_real + [0] * BATCH_SIZE_fake)
 
+            # print(combined_X.shape, combined_Y.shape)
             d_loss = discriminator.train_on_batch(combined_X, combined_Y)
 
             noise = np.random.uniform(-1, 1, (BATCH_SIZE,100))
@@ -174,7 +188,7 @@ def train(BATCH_SIZE, restore=False):
             discriminator.trainable = True
 
             # save image
-            if epoch % 20 == 0 and index == 0:
+            if epoch % 2000 == 0:
                 image = combine_images(generated_images)
                 image = image*127.5+127.5
                 if image.shape[-1] ==1:
@@ -183,7 +197,7 @@ def train(BATCH_SIZE, restore=False):
                     "keras_samples/" + str(epoch) + ".png")
 
             # save model
-            if epoch != 0 and epoch % 5000 == 0 and index == 0:
+            if epoch != 0 and epoch % 50000 == 0:
                 total_model = [discriminator, generator, discriminator_on_generator]
                 # serialize model to JSON
                 discriminator_model_json = discriminator.to_json()
@@ -207,10 +221,10 @@ def train(BATCH_SIZE, restore=False):
                 discriminator_on_generator.save_weights("./load-save-keras-model/checkpoint/discriminator_on_generator-%d.h5" % epoch)
                 print("Saved discriminator_on_generator model to disk")
 
-        # print("Epoch %d Step %d d_loss : %f" % (epoch, index, d_loss))
-        # print("Epoch %d Step %d g_loss : %f" % (epoch, index, g_loss))
-        d_losses.append(d_loss)
-        g_losses.append(g_loss)
+            # print("Epoch %d Step %d d_loss : %f" % (epoch, index, d_loss))
+            # print("Epoch %d Step %d g_loss : %f" % (epoch, index, g_loss))
+            d_losses.append(d_loss)
+            g_losses.append(g_loss)
     return d_losses,g_losses
 
 if __name__ == "__main__":
@@ -220,7 +234,7 @@ if __name__ == "__main__":
     if not os.path.exists('./load-save-keras-model/checkpoint'):
         os.mkdir('./load-save-keras-model/checkpoint')
 
-    d_losses,g_losses = train(BATCH_SIZE=64, restore=False)
+    d_losses,g_losses = train(BATCH_SIZE=4, restore=False)
     print(len(d_losses))
     fig = plt.figure()
     ax = fig.add_subplot(111)
