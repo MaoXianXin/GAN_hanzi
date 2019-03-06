@@ -186,7 +186,7 @@ def train(BATCH_SIZE, restore=False):
                     "keras_samples/" + str(epoch) + ".png")
 
             # save model
-            if epoch != 0 and epoch % 100000 == 0 and index == 0:
+            if epoch != 0 and epoch % 10000 == 0 and index == 0:
                 total_model = [discriminator, generator, discriminator_on_generator]
                 # serialize model to JSON
                 discriminator_model_json = discriminator.to_json()
