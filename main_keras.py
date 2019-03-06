@@ -167,7 +167,7 @@ def train(BATCH_SIZE, restore=False):
         discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=optim)
 
     for epoch in tqdm(range(500000)):
-        for i in range(int(902 / BATCH_SIZE)):
+        for i in range(int(778 / BATCH_SIZE)):
             # print("Epoch is", epoch)
             noise = np.random.uniform(-1, 1, (BATCH_SIZE,100))
             image_batch = train_generator.next()
@@ -234,7 +234,7 @@ if __name__ == "__main__":
     if not os.path.exists('./load-save-keras-model/checkpoint'):
         os.mkdir('./load-save-keras-model/checkpoint')
 
-    d_losses,g_losses = train(BATCH_SIZE=4, restore=False)
+    d_losses,g_losses = train(BATCH_SIZE=32, restore=False)
     print(len(d_losses))
     fig = plt.figure()
     ax = fig.add_subplot(111)
