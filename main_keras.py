@@ -167,7 +167,7 @@ def train(BATCH_SIZE, restore=False):
         discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=optim)
 
     for epoch in tqdm(range(500000)):
-        for i in range(int(778 / BATCH_SIZE)):
+        for i in range(int(741 / BATCH_SIZE)):
             # print("Epoch is", epoch)
             noise = np.random.uniform(-1, 1, (BATCH_SIZE,100))
             image_batch = train_generator.next()
