@@ -25,8 +25,8 @@ from keras.preprocessing.image import ImageDataGenerator
 # dimensions of our images.
 img_width, img_height = 64, 64
 
-train_data_dir = '/home/mao/Downloads/dataset/temp_processed_image/train'
-validation_data_dir = '/home/mao/Downloads/dataset/temp_processed_image/validation'
+train_data_dir = './temp_processed_image/train'
+validation_data_dir = './temp_processed_image/validation'
 
 def generator_model(im_size, output_channel = 3):
     initializer = initializers.truncated_normal(stddev=0.1)
@@ -167,7 +167,7 @@ def train(BATCH_SIZE, restore=False):
         discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=optim)
 
     for epoch in tqdm(range(500000)):
-        for i in range(int(902 / 8)):
+        for i in range(int(902 / BATCH_SIZE)):
             # print("Epoch is", epoch)
             noise = np.random.uniform(-1, 1, (BATCH_SIZE,100))
             image_batch = train_generator.next()
