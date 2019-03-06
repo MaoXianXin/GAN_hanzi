@@ -7,7 +7,7 @@ import os
 FONTSIZE = 64
 
 class CommonChar():
-    def __init__(self,path):  # fn is file path dir
+    def __init__(self,path):
         self.chars = []
         files = os.listdir(path)
         # print(files)
