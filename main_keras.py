@@ -194,13 +194,13 @@ def train(BATCH_SIZE, restore=False):
             discriminator.trainable = True
 
             # save image
-            if epoch % 1 == 0:
+            if i % 10 == 0:
                 image = combine_images(generated_images)
                 image = image*127.5+127.5
                 if image.shape[-1] ==1:
                     image = image[:,:,0]
                 Image.fromarray(image.astype(np.uint8)).save(
-                    "keras_samples/" + str(epoch) + ".png")
+                    "keras_samples/" + str(epoch) + '-' + str(i) + ".png")
 
             # save model
             if epoch != 0 and epoch % 50000 == 0:
