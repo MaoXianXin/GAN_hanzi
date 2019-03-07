@@ -5,6 +5,7 @@ import math,os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from tqdm import tqdm
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True #动态分配显存
@@ -182,7 +183,7 @@ class Model():
 
 if __name__ == "__main__":
     nb_epochs = 200
-    cc = CommonChar()
+    cc = CommonChar(path='./data')
     ic = ImageChar()
     X_all = []
     for c in cc.chars:
@@ -203,7 +204,7 @@ if __name__ == "__main__":
     if not os.path.exists("wgan_samples/"):
         os.mkdir("wgan_samples/")
 
-    for epoch in range(nb_epochs):
+    for epoch in tqdm(range(nb_epochs)):
         print("Epoch [{} / {}] ".format(epoch+1,nb_epochs))
         img, d_loss, g_loss = model.train_one_epoch(X_train,z_sample,sess,ratio=5)
         image = combine_images(img)
