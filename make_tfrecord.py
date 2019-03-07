@@ -44,8 +44,7 @@ def _convert_to_example(orig_filename, orig_image_buffer,
         'orig/image/width': _int64_feature(orig_width),
         'orig/image/channels': _int64_feature(channels),
         'orig/image/filename': _bytes_feature(tf.compat.as_bytes(os.path.basename(orig_filename))),
-        'orig/image/encoded': _bytes_feature(tf.compat.as_bytes(orig_image_buffer)),
-        'label/image/channels': _int64_feature(channels)}))
+        'orig/image/encoded': _bytes_feature(tf.compat.as_bytes(orig_image_buffer))}))
     return example
 
 
@@ -172,7 +171,7 @@ def main(orignal_image_folder, output_directory, shards_size=-1):
 if __name__ == '__main__':
     main(orignal_image_folder='/home/mao/Downloads/dataset/hanzi',
          output_directory='/home/mao/Downloads/dataset',
-         shards_size=-1)
+         shards_size=20)
 # For reading files
 
 # import tensorflow as tf
