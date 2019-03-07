@@ -1,1 +1,1 @@
-挨哎唉哀皑癌蔼矮艾碍爱隘鞍氨安俺按暗岸胺案肮昂盎凹敖熬翱袄傲奥懊澳芭捌扒叭吧笆八疤巴拔跋靶把耙坝霸罢爸白柏百摆佰败拜稗斑班搬
+However, this can be still insufficient. It will work only for your local branches which track remote branches. To track all remote branches execute this oneliner
