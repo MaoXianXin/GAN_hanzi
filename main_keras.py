@@ -194,7 +194,7 @@ def train(BATCH_SIZE, restore=False):
             discriminator.trainable = True
 
             # save image
-            if epoch % 2000 == 0:
+            if epoch % 1 == 0:
                 image = combine_images(generated_images)
                 image = image*127.5+127.5
                 if image.shape[-1] ==1:
