@@ -21,8 +21,8 @@ def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def _convert_to_example(orig_filename, orig_image_buffer,
-                        orig_height, orig_width):
+def _convert_to_example(filename, image_buffer,
+                        height, width):
     """Build an Example proto for an example.
 
     Args:
@@ -40,11 +40,11 @@ def _convert_to_example(orig_filename, orig_image_buffer,
     channels = 1
 
     example = tf.train.Example(features=tf.train.Features(feature={
-        'orig/image/height': _int64_feature(orig_height),
-        'orig/image/width': _int64_feature(orig_width),
-        'orig/image/channels': _int64_feature(channels),
-        'orig/image/filename': _bytes_feature(tf.compat.as_bytes(os.path.basename(orig_filename))),
-        'orig/image/encoded': _bytes_feature(tf.compat.as_bytes(orig_image_buffer))}))
+        'height': _int64_feature(height),
+        'width': _int64_feature(width),
+        'channels': _int64_feature(channels),
+        'filename': _bytes_feature(tf.compat.as_bytes(os.path.basename(filename))),
+        'encoded': _bytes_feature(tf.compat.as_bytes(image_buffer))}))
     return example
 
 
@@ -100,7 +100,7 @@ def _process_image(filename, coder):
       width: integer, image width in pixels.
     """
     # Read the image file.
-    with tf.gfile.GFile(filename, 'rb') as f:
+    with tf.gfile.FastGFile(filename, 'rb') as f:
         image_data = f.read()
 
     # Convert any PNG to JPEG's for consistency.
@@ -120,7 +120,7 @@ def _process_image(filename, coder):
     return image_data, height, width
 
 
-def _process_image_files_batch(coder, name, orig_filenames, output_directory, shards_size):
+def _process_image_files_batch(coder, name, img_paths, output_directory, shards_size):
     """Processes and saves list of images as TFRecord in 1 thread.
 
     Args:
@@ -132,43 +132,43 @@ def _process_image_files_batch(coder, name, orig_filenames, output_directory, sh
       shards_size: integer size of shards for this data set.
     """
     if (shards_size != -1):
-        total_shards = int(math.ceil(len(orig_filenames) / shards_size))
+        total_shards = int(math.ceil(len(img_paths) / shards_size))
     else:
         total_shards = 1
-        shards_size = len(orig_filenames)
+        shards_size = len(img_paths)
     print("Total Partitions %d, partition size %d " % (total_shards, shards_size))
     for shard in range(total_shards):
         # Generate a sharded version of the file name, e.g. 'train-00002-of-00010'
         output_filename = '%s-%.5d-of-%.5d.tfrecord' % (name, shard, total_shards)
         output_file = os.path.join(output_directory, output_filename)
         writer = tf.python_io.TFRecordWriter(output_file)
-        shard_counter = 0
-        files_in_shard = np.arange(shard * shards_size, min((shard + 1) * shards_size, len(orig_filenames)), dtype=int)
+        # shard_counter = 0
+        files_in_shard = np.arange(shard * shards_size, min((shard + 1) * shards_size, len(img_paths)), dtype=int)
         for i in files_in_shard:
-            orig = orig_filenames[i]
+            path = img_paths[i]
 
-            orig_image_buffer, orig_height, orig_width = _process_image(orig, coder)
+            image_buffer, height, width = _process_image(path, coder)
 
-            example = _convert_to_example(orig, orig_image_buffer,
-                                          orig_height, orig_width)
+            example = _convert_to_example(path, image_buffer,
+                                          height, width)
             writer.write(example.SerializeToString())
-        print("Processed files %d of %d" % (shard * shards_size, len(orig_filenames)))
+        print("Processed files %d of %d" % (shard * shards_size, len(img_paths)))
         writer.close()
         sys.stdout.flush()
-        shard_counter = 0
+        # shard_counter = 0
     sys.stdout.flush()
 
 
-def main(orignal_image_folder, output_directory, shards_size=-1):
-    orig_img_paths = [os.path.join(orignal_image_folder, im) for im in os.listdir(orignal_image_folder) if
-                      os.path.isfile(os.path.join(orignal_image_folder, im))]
+def main(image_folder, output_directory, shards_size=-1):
+    img_paths = [os.path.join(image_folder, im) for im in os.listdir(image_folder) if
+                      os.path.isfile(os.path.join(image_folder, im))]
 
     coder = ImageCoder()
-    # print(orig_img_paths)
-    _process_image_files_batch(coder, "data", orig_img_paths, output_directory, shards_size)
+    print(len(img_paths))
+    _process_image_files_batch(coder, "data", img_paths, output_directory, shards_size)
 
 
 if __name__ == '__main__':
-    main(orignal_image_folder='/home/mao/Downloads/dataset/hanzi',
+    main(image_folder='/home/mao/Downloads/dataset/hanzi/test2',
          output_directory='/home/mao/Downloads/dataset',
-         shards_size=20)
+         shards_size=5000)
