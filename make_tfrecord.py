@@ -10,10 +10,8 @@ import tensorflow as tf
 
 
 def _int64_feature(value):
-    """Wrapper for inserting int64 features into Example proto."""
-    if not isinstance(value, list):
-        value = [value]
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
+  """Returns an int64_list from a bool / enum / int / uint."""
+  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 
 def _bytes_feature(value):
@@ -43,8 +41,7 @@ def _convert_to_example(filename, image_buffer,
         'height': _int64_feature(height),
         'width': _int64_feature(width),
         'channels': _int64_feature(channels),
-        'filename': _bytes_feature(tf.compat.as_bytes(os.path.basename(filename))),
-        'encoded': _bytes_feature(tf.compat.as_bytes(image_buffer))}))
+        'image': _bytes_feature(image_buffer)}))
     return example
 
 
@@ -100,7 +97,7 @@ def _process_image(filename, coder):
       width: integer, image width in pixels.
     """
     # Read the image file.
-    with tf.gfile.FastGFile(filename, 'rb') as f:
+    with tf.gfile.GFile(filename, 'rb') as f:
         image_data = f.read()
 
     # Convert any PNG to JPEG's for consistency.
@@ -169,6 +166,6 @@ def main(image_folder, output_directory, shards_size=-1):
 
 
 if __name__ == '__main__':
-    main(image_folder='/home/mao/Downloads/dataset/hanzi/test2',
-         output_directory='/home/mao/Downloads/dataset',
+    main(image_folder='./data/images2',
+         output_directory='./data/image2-tfrecord',
          shards_size=-1)

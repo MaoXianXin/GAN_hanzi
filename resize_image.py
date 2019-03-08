@@ -5,10 +5,10 @@ from PIL import Image
 import matplotlib.pylab as plt
 import cv2
 import scipy
+tf.enable_eager_execution()
 
-save_dir = './data/image2'
+save_dir = './data/images'
 print("resizing images")
-print("current directory:",save_dir)
 image_folder = '/home/mao/Downloads/dataset/hanzi/test2'
 image_names = os.listdir(image_folder)
 all_image_paths = []
@@ -42,7 +42,7 @@ with tf.Graph().as_default():
     sess = tf.Session()
     sess.run(init)
     tf.train.start_queue_runners(sess=sess)
-    for i in range(200):
+    for i in range(len(all_image_paths)):
         img = sess.run(image)
         img = np.reshape(img, [pixth,pixth])
         # plt.imshow(img)

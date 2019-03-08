@@ -6,6 +6,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tqdm import tqdm
+import cv2
+import glob
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True #动态分配显存
@@ -182,21 +184,23 @@ class Model():
 
 
 if __name__ == "__main__":
-    nb_epochs = 200
-    cc = CommonChar(path='./data')
-    ic = ImageChar()
-    X_all = []
-    for c in cc.chars:
-        ic.drawText(c)
-        X_all.append((ic.toArray()-127.5)/127.5)
-    X_train = np.array(X_all)
+    nb_epochs = 200000
+    # cc = CommonChar(path='./data')
+    # ic = ImageChar()
+    # X_all = []
+    # for c in cc.chars:
+    #     ic.drawText(c)
+    #     X_all.append((ic.toArray()-127.5)/127.5)
+    # X_train = np.array(X_all)
+    #
+    images = [(cv2.imread(file, cv2.IMREAD_GRAYSCALE) - 127.5) / 127.5 for file in glob.glob('./data/images/*jpeg')]
 
+    X_train = np.array(images)
     if len(X_train.shape)==3:
         X_train = X_train.reshape(X_train.shape + (1,))
 
-
     sess = tf.Session(config=config)
-    model = Model(batch_size=128,sess=sess)
+    model = Model(batch_size=8,sess=sess)
 
     d_losses = []
     g_losses = []
@@ -205,7 +209,7 @@ if __name__ == "__main__":
         os.mkdir("wgan_samples/")
 
     for epoch in tqdm(range(nb_epochs)):
-        print("Epoch [{} / {}] ".format(epoch+1,nb_epochs))
+        # print("Epoch [{} / {}] ".format(epoch+1,nb_epochs))
         img, d_loss, g_loss = model.train_one_epoch(X_train,z_sample,sess,ratio=5)
         image = combine_images(img)
         image = image*127.5+127.5
