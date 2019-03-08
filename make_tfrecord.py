@@ -171,4 +171,4 @@ def main(image_folder, output_directory, shards_size=-1):
 if __name__ == '__main__':
     main(image_folder='/home/mao/Downloads/dataset/hanzi/test2',
          output_directory='/home/mao/Downloads/dataset',
-         shards_size=5000)
+         shards_size=-1)
