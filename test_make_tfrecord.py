@@ -43,20 +43,25 @@ def serialize_example(feature0, feature1, feature2, feature3):
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
     return example_proto.SerializeToString()
 
-# print(_bytes_feature(b'test_string'))
-# f1 = _bytes_feature(b'test_string')
-# print(_bytes_feature(u'test_bytes'.encode('utf-8')))
-# f2 = _bytes_feature(u'test_bytes'.encode('utf-8'))
-# print(f1 == f2)  # False
-# print(_float_feature(np.exp(1)))
-# f3 = _float_feature(np.exp(1))
-# print(_int64_feature(True))
-# f4 = _int64_feature(True)
-# print(_int64_feature(1))
-# f5 = _int64_feature(1)
+def tf_serialize_example(f0,f1,f2,f3):
+  tf_string = tf.py_func(
+    serialize_example,
+    (f0,f1,f2,f3),  # pass these args to the above function.
+    tf.string)      # the return type is <a href="../../api_docs/python/tf#string"><code>tf.string</code></a>.
+  return tf.reshape(tf_string, ()) # The result is a scalar
 
-# feature = _float_feature(np.exp(1))
-# print(feature.SerializeToString())
+
+# Create a description of the features.
+feature_description = {
+    'feature0': tf.FixedLenFeature([], tf.int64, default_value=0),
+    'feature1': tf.FixedLenFeature([], tf.int64, default_value=0),
+    'feature2': tf.FixedLenFeature([], tf.string, default_value=''),
+    'feature3': tf.FixedLenFeature([], tf.float32, default_value=0.0),
+}
+def _parse_function(example_proto):
+  # Parse the input tf.Example proto using the dictionary above.
+  # return tf.parse_single_example(example_proto, feature_description)
+  return tf.parse_example(example_proto, feature_description)
 
 # the number of observations in the dataset
 n_observations = int(1e5)
@@ -76,21 +81,45 @@ feature3 = np.random.randn(n_observations)
 
 # This is an example observation from the dataset.
 
-example_observation = []
+# example_observation = []
+#
+# output_file = './test.tfrecord'
+# writer = tf.python_io.TFRecordWriter(output_file)
+# for i in range(n_observations):
+#     serialized_example = serialize_example(feature0[i], feature1[i], feature2[i], feature3[i])
+#     print(serialized_example)
+#
+#     # example_proto = tf.train.Example.FromString(serialized_example)
+#     # print(example_proto)
+#     writer.write(serialized_example)
+# writer.close()
+# sys.stdout.flush()
 
-# data = np.array([[False, 4, b'goat', 0.9876],
-#                  [False, 4, b'goat', 0.9876],
-#                  [False, 4, b'goat', 0.9876],
-#                  [False, 4, b'goat', 0.9876]])
+features_dataset = tf.data.Dataset.from_tensor_slices((feature0, feature1, feature2, feature3))
+print(features_dataset)
 
-output_file = './test.tfrecord'
-writer = tf.python_io.TFRecordWriter(output_file)
-for i in range(n_observations):
-    serialized_example = serialize_example(feature0[i], feature1[i], feature2[i], feature3[i])
-    print(serialized_example)
+# for f0,f1,f2,f3 in features_dataset.take(1):
+#   print(f0)
+#   print(f1)
+#   print(f2)
+#   print(f3)
+serialized_features_dataset = features_dataset.map(tf_serialize_example)
+print(serialized_features_dataset)
 
-    # example_proto = tf.train.Example.FromString(serialized_example)
-    # print(example_proto)
-    writer.write(serialized_example)
-writer.close()
-sys.stdout.flush()
+filename = 'test-1.tfrecord'
+# writer = tf.data.experimental.TFRecordWriter(filename)
+# writer.write(serialized_features_dataset)
+# sys.stdout.flush()
+
+filenames = [filename]
+raw_dataset = tf.data.TFRecordDataset(filenames)
+print(raw_dataset)
+
+# for raw_record in raw_dataset.take(10):
+#   print(repr(raw_record))
+
+parsed_dataset = raw_dataset.map(_parse_function)
+print(parsed_dataset)
+
+for parsed_record in parsed_dataset.take(10):
+  print(repr(parsed_record))
