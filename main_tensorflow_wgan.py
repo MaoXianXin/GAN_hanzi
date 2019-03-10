@@ -37,6 +37,8 @@ class Model():
         self.g_outputs = self.build_generator(self.input_z,is_training=True,is_reuse=False)
         self.sample_outputs = self.build_generator(self.input_z,is_training=False,is_reuse=True)
         self.l2diff = tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(tf.reshape(self.input_i, [batch_size, -1]), tf.reshape(self.sample_outputs, [batch_size, -1])))))
+        self.summary_writer = tf.summary.FileWriter('./checkpoint', sess.graph)
+        self.l2_diff_summary = tf.summary.scalar('l2_diff', self.l2diff)
 
         d_logits_fake = self.build_discriminator(self.g_outputs,is_training=True,is_reuse=False)
         d_logits_real = self.build_discriminator(self.input_i,is_training=True,is_reuse=True)
@@ -54,6 +56,8 @@ class Model():
 
         self.d_loss = d_loss_fake + d_loss_real + d_grad_loss
         self.g_loss = -d_loss_fake
+        self.d_loss_summary = tf.summary.scalar('d_loss', self.d_loss)
+        self.g_loss_summary = tf.summary.scalar('g_loss', self.g_loss)
 
         all_vars = tf.trainable_variables()
         self.d_vars = [var for var in all_vars if "discriminator" in var.name]
@@ -150,7 +154,7 @@ class Model():
                     1,kernel_initializer=w_init)
             return logits
 
-    def train_one_epoch(self, summary_writer, epoch, real_images, z_sample, sess, ratio = 5):
+    def train_one_epoch(self, epoch, real_images, z_sample, sess, ratio = 5):
         shuffled_images = real_images[np.random.permutation(len(real_images))]
 
         nb_batch = len(real_images)//self.batch_size
@@ -173,9 +177,12 @@ class Model():
             d_losses[i]=d_loss
             g_losses[i]=g_loss
 
-            l2_diff_summary = tf.summary.scalar('l2_diff', self.l2diff)
-            l2_diff_value = sess.run(l2_diff_summary, feed_dict={self.input_i:real_batch, self.input_z:z})
-            summary_writer.add_summary(l2_diff_value, global_step=epoch*nb_batch + i)
+            l2_diff_value, d_loss_value = sess.run([self.l2_diff_summary, self.d_loss_summary], feed_dict={self.input_i:real_batch, self.input_z:z})
+            g_loss_value = sess.run(self.g_loss_summary,feed_dict={self.input_z:z})
+            self.summary_writer.add_summary(l2_diff_value, global_step=epoch*nb_batch + i)
+            self.summary_writer.add_summary(g_loss_value, global_step=epoch*nb_batch + i)
+            self.summary_writer.add_summary(d_loss_value, global_step=epoch*nb_batch + i)
+
 
         mean_d_loss = np.mean(d_losses).item()
         mean_g_loss = np.mean(g_losses).item()
@@ -205,20 +212,18 @@ if __name__ == "__main__":
         X_train = X_train.reshape(X_train.shape + (1,))
 
     sess = tf.Session(config=config)
-    model = Model(batch_size=8,sess=sess)
+    model = Model(batch_size=512,sess=sess)
 
     z_sample = np.random.normal(loc=0.0,scale=1.0,size=(model.batch_size,100)) #np.random.uniform(-1, 1, (model.batch_size, 100))
     if not os.path.exists("wgan_samples/"):
         os.mkdir("wgan_samples/")
 
-    summary_writer = tf.summary.FileWriter('./checkpoint', sess.graph)
+    saver = tf.train.Saver()
     for epoch in tqdm(range(nb_epochs)):
         # print("Epoch [{} / {}] ".format(epoch+1,nb_epochs))
-        img, d_loss, g_loss = model.train_one_epoch(summary_writer,epoch,X_train,z_sample,sess,ratio=5)
-        d_loss_summary = tf.summary.scalar('d_loss', d_loss)
-        g_loss_summary = tf.summary.scalar('g_loss', g_loss)
-        summary_writer.add_summary(d_loss_summary, epoch)
-        summary_writer.add_summary(g_loss_summary, epoch)
+        img, d_loss, g_loss = model.train_one_epoch(epoch,X_train,z_sample,sess,ratio=5)
+        if epoch % 60 == 0:
+            saver.save(sess, "./checkpoint/model.ckpt", global_step=epoch)
 
         image = combine_images(img)
         image = image*127.5+127.5
@@ -226,4 +231,3 @@ if __name__ == "__main__":
             image = image[:,:,0]
             Image.fromarray(image.astype(np.uint8)).save("wgan_samples/"+str(epoch)+".png")
 
-    summary_writer.close()
